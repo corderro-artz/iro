@@ -34,7 +34,9 @@ public readonly record struct Color(byte R, byte G, byte B, byte A = 255)
     /// Creates a color from a hex string.
     /// Supported formats: #RGB, RGB, #RRGGBB, RRGGBB, #AARRGGBB, AARRGGBB.
     /// </summary>
-    /// <exception cref="FormatException">Thrown when <paramref name="hex"/> is not a recognised format.</exception>
+    /// <exception cref="FormatException">
+    /// Thrown when <paramref name="hex"/> is <see langword="null"/>, empty, or not a recognised hex format.
+    /// </exception>
     public static Color FromHex(string hex)
     {
         if (string.IsNullOrEmpty(hex))
@@ -55,13 +57,17 @@ public readonly record struct Color(byte R, byte G, byte B, byte A = 255)
     /// <summary>Creates a color from hue (0–360), saturation (0–1), and value (0–1).</summary>
     public static Color FromHsv(double hue, double saturation, double value)
     {
+        hue        = ((hue % 360) + 360) % 360; // normalize to 0–360, handles negative
+        saturation = Math.Clamp(saturation, 0.0, 1.0);
+        value      = Math.Clamp(value, 0.0, 1.0);
+
         if (saturation == 0)
         {
             var v = (byte)(value * 255);
             return new Color(v, v, v);
         }
 
-        double h = hue % 360 / 60;
+        double h = hue / 60;
         int    i = (int)h;
         double f = h - i;
         double p = value * (1 - saturation);
