@@ -29,7 +29,7 @@ internal sealed class AnsiRenderer
                     sb.Append("\e[0m");
                     if (stack.Count > 0)
                     {
-                        var merged = Merge(stack);
+                        var merged = StyleStack.Merge(stack);
                         emittedStyle = false;
                         Emit(sb, merged, ref emittedStyle);
                     }
@@ -53,20 +53,5 @@ internal sealed class AnsiRenderer
         if (style.Underline) { sb.Append("\e[4m"); emitted = true; }
     }
 
-    // Merge all stack styles bottom-to-top; later entries override for fg/bg.
-    private static Style Merge(Stack<Style> stack)
-    {
-        Color? fg = null, bg = null;
-        bool bold = false, underline = false;
 
-        foreach (var s in stack.Reverse())
-        {
-            if (s.Foreground.HasValue) fg = s.Foreground;
-            if (s.Background.HasValue) bg = s.Background;
-            bold      |= s.Bold;
-            underline |= s.Underline;
-        }
-
-        return new Style(fg, bg, bold, underline);
-    }
 }

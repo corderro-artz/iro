@@ -22,13 +22,13 @@ internal sealed class ConsoleRenderer
 
                     case TokenType.StylePush:
                         stack.Push(token.Style);
-                        Apply(Merge(stack));
+                        Apply(StyleStack.Merge(stack));
                         break;
 
                     case TokenType.StylePop:
                         if (stack.Count > 0) stack.Pop();
                         if (stack.Count > 0)
-                            Apply(Merge(stack));
+                            Apply(StyleStack.Merge(stack));
                         else
                         {
                             Console.ForegroundColor = savedFg;
@@ -53,19 +53,5 @@ internal sealed class ConsoleRenderer
             Console.BackgroundColor = style.Background.Value.ToNearestConsoleColor();
     }
 
-    private static Style Merge(Stack<Style> stack)
-    {
-        Color? fg = null, bg = null;
-        bool bold = false, underline = false;
 
-        foreach (var s in stack.Reverse())
-        {
-            if (s.Foreground.HasValue) fg = s.Foreground;
-            if (s.Background.HasValue) bg = s.Background;
-            bold      |= s.Bold;
-            underline |= s.Underline;
-        }
-
-        return new Style(fg, bg, bold, underline);
-    }
 }
