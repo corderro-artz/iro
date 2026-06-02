@@ -4,7 +4,7 @@ using Iro.Internal;
 namespace Iro.Interpolation;
 
 /// <summary>
-/// Custom interpolated string handler for <see cref="Terminal.Write"/> and <see cref="Terminal.WriteLine"/>.
+/// Custom interpolated string handler for <see cref="Terminal.Write(string)"/> and <see cref="Terminal.WriteLine(string)"/>.
 /// Captures string segments and formatted values as <see cref="StyleToken"/> entries, passing them
 /// through the shared rendering pipeline without building an intermediate string.
 /// </summary>
