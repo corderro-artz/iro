@@ -5,8 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <IsAotCompatible>true</IsAotCompatible>
     <TrimMode>full</TrimMode>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+<GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <RootNamespace>Iro</RootNamespace>
     <AssemblyName>Iro</AssemblyName>
