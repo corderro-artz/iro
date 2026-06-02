@@ -29,6 +29,7 @@ public ref struct TerminalInterpolatedStringHandler
         => Push(new StyleToken(TokenType.Literal, Text: value?.ToString() ?? string.Empty));
 
     /// <summary>Appends a formatted value with an optional color format specifier.</summary>
+    // TODO(Task 9): parse format as named color or hex and wrap value in StylePush/StylePop tokens
     public void AppendFormatted<T>(T value, string? format)
         => Push(new StyleToken(TokenType.Literal, Text: value?.ToString() ?? string.Empty));
 
