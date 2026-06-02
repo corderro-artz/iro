@@ -28,9 +28,6 @@ internal static class AnsiCapabilityDetector
                     return true;
 
         // Redirected output with no recognisable env vars: disable ANSI
-        if (Console.IsOutputRedirected)
-            return false;
-
-        return false;
+        return !Console.IsOutputRedirected;
     }
 }
