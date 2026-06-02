@@ -106,4 +106,69 @@ public class TerminalTests
             Terminal.Options.EnableConsoleFallback = savedFallback;
         }
     }
+
+    [Fact]
+    public void WriteLine_InterpolatedString_CapturesLiteralsAndValues()
+    {
+        var user = "Alice";
+        var output = CaptureWrite(() =>
+        {
+            Terminal.Options.EnableAnsi = true;
+            Terminal.Options.DetectAnsiAutomatically = false;
+            Terminal.WriteLine($"User {user} connected");
+        });
+        Assert.Contains("User", output);
+        Assert.Contains("Alice", output);
+        Assert.Contains("connected", output);
+    }
+
+    [Fact]
+    public void WriteLine_InterpolatedString_ColorFormat_NamedColor()
+    {
+        var count = 42;
+        string output = "";
+        WithAnsiForced(() =>
+        {
+            output = CaptureWrite(() => Terminal.WriteLine($"Items: {count:red}"));
+        });
+        Assert.Contains("42", output);
+        Assert.Contains("\e[38;2;255;0;0m", output);
+    }
+
+    [Fact]
+    public void WriteLine_InterpolatedString_ColorFormat_HexColor()
+    {
+        var label = "important";
+        string output = "";
+        WithAnsiForced(() =>
+        {
+            output = CaptureWrite(() => Terminal.WriteLine($"Status: {label:#FF8800}"));
+        });
+        Assert.Contains("important", output);
+        Assert.Contains("\e[38;2;255;136;0m", output);
+    }
+
+    [Fact]
+    public void WriteLine_InterpolatedString_UnknownFormat_RendersAsPlain()
+    {
+        var val = "data";
+        string output = "";
+        WithAnsiForced(() =>
+        {
+            output = CaptureWrite(() => Terminal.WriteLine($"Val: {val:unknown}"));
+        });
+        Assert.Contains("data", output);
+        Assert.DoesNotContain("\e[38;", output);
+    }
+
+    [Fact]
+    public void Write_InterpolatedString_NoNewline()
+    {
+        string output = "";
+        WithAnsiForced(() =>
+        {
+            output = CaptureWrite(() => Terminal.Write($"no newline"));
+        });
+        Assert.Equal("no newline", output);
+    }
 }

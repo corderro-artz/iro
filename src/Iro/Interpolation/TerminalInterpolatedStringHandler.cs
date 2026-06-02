@@ -3,14 +3,18 @@ using Iro.Internal;
 
 namespace Iro.Interpolation;
 
-/// <summary>Custom interpolated string handler for <see cref="Terminal"/> write methods.</summary>
+/// <summary>
+/// Custom interpolated string handler for <see cref="Terminal.Write"/> and <see cref="Terminal.WriteLine"/>.
+/// Captures string segments and formatted values as <see cref="StyleToken"/> entries, passing them
+/// through the shared rendering pipeline without building an intermediate string.
+/// </summary>
 [InterpolatedStringHandler]
 public ref struct TerminalInterpolatedStringHandler
 {
     private StyleToken[] _tokens;
     private int          _count;
 
-    /// <summary>Initialises the handler.</summary>
+    /// <summary>Initialises the handler with capacity hints from the compiler.</summary>
     public TerminalInterpolatedStringHandler(int literalLength, int formattedCount)
     {
         _tokens = new StyleToken[formattedCount * 3 + formattedCount + 4];
@@ -24,14 +28,29 @@ public ref struct TerminalInterpolatedStringHandler
             Push(new StyleToken(TokenType.Literal, Text: value));
     }
 
-    /// <summary>Appends a formatted value.</summary>
+    /// <summary>Appends a formatted value as a literal token.</summary>
     public void AppendFormatted<T>(T value)
         => Push(new StyleToken(TokenType.Literal, Text: value?.ToString() ?? string.Empty));
 
-    /// <summary>Appends a formatted value with an optional color format specifier.</summary>
-    // TODO(Task 9): parse format as named color or hex and wrap value in StylePush/StylePop tokens
+    /// <summary>
+    /// Appends a formatted value with an optional color format specifier.
+    /// Supported formats: named colors (<c>red</c>, <c>green</c>, <c>yellow</c>, <c>blue</c>,
+    /// <c>magenta</c>, <c>cyan</c>, <c>white</c>, <c>black</c>, <c>gray</c>) and hex (<c>#FF8800</c>).
+    /// Unrecognised format specifiers are ignored and the value is rendered as plain text.
+    /// </summary>
     public void AppendFormatted<T>(T value, string? format)
-        => Push(new StyleToken(TokenType.Literal, Text: value?.ToString() ?? string.Empty));
+    {
+        if (format is not null && TryParseColor(format, out var color))
+        {
+            Push(new StyleToken(TokenType.StylePush, Style: new Style(Foreground: color)));
+            Push(new StyleToken(TokenType.Literal,   Text:  value?.ToString() ?? string.Empty));
+            Push(new StyleToken(TokenType.StylePop));
+        }
+        else
+        {
+            Push(new StyleToken(TokenType.Literal, Text: value?.ToString() ?? string.Empty));
+        }
+    }
 
     internal StyleToken[] GetTokens() => _tokens[.._count];
 
@@ -46,5 +65,31 @@ public ref struct TerminalInterpolatedStringHandler
         var bigger = new StyleToken[_tokens.Length * 2];
         _tokens.CopyTo(bigger, 0);
         _tokens = bigger;
+    }
+
+    private static bool TryParseColor(string format, out Color color)
+    {
+        if (format.StartsWith('#'))
+        {
+            try { color = Color.FromHex(format); return true; }
+            catch (FormatException) { color = default; return false; }
+        }
+
+        var matched = format.ToLowerInvariant() switch
+        {
+            "black"   => (true, Color.Black),
+            "red"     => (true, Color.Red),
+            "green"   => (true, Color.Green),
+            "yellow"  => (true, Color.Yellow),
+            "blue"    => (true, Color.Blue),
+            "magenta" => (true, Color.Magenta),
+            "cyan"    => (true, Color.Cyan),
+            "white"   => (true, Color.White),
+            "gray"    => (true, Color.Gray),
+            _         => (false, default(Color))
+        };
+
+        color = matched.Item2;
+        return matched.Item1;
     }
 }
