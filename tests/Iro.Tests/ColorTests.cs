@@ -83,11 +83,11 @@ public class ColorTests
         Assert.Equal("\e[48;2;0;128;255m", c.ToAnsiBackground());
     }
 
-    [Fact(Skip = "ColorConverter is a stub; will pass after Task 4")]
+    [Fact]
     public void ToNearestConsoleColor_Red_MapsToRed()
         => Assert.Equal(ConsoleColor.Red, Color.Red.ToNearestConsoleColor());
 
-    [Fact(Skip = "ColorConverter is a stub; will pass after Task 4")]
+    [Fact]
     public void ToNearestConsoleColor_Black_MapsToBlack()
         => Assert.Equal(ConsoleColor.Black, Color.Black.ToNearestConsoleColor());
 
