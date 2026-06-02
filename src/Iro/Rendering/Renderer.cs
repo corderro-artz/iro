@@ -29,7 +29,17 @@ internal static class Renderer
             return;
         }
 
-        s_console.Render(tokens, output);
+        var opts = Terminal.Options;
+        if (opts.EnableConsoleFallback)
+        {
+            s_console.Render(tokens, output);
+            return;
+        }
+
+        // No ANSI, no fallback — write plain text
+        foreach (var token in tokens)
+            if (token.Type == TokenType.Literal)
+                output.Write(token.Text);
     }
 
     /// <summary>Parses <paramref name="markup"/> and renders to <paramref name="output"/>.</summary>
