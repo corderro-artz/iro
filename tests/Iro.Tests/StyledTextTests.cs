@@ -2,6 +2,7 @@ using Xunit;
 
 namespace Iro.Tests;
 
+[Collection("Console")]
 public class StyledTextTests
 {
     private void WithAnsiForced(Action action)
@@ -131,18 +132,30 @@ public class StyledTextTests
     [Fact]
     public void ConsoleWriteLine_Works_WithoutThrowing()
     {
-        // Console.WriteLine(styledText) must not throw
         var s = StyledText.Create("hello", fg: Color.Green);
-        var ex = Record.Exception(() => Console.WriteLine(s));
-        Assert.Null(ex);
+        using var sw     = new StringWriter();
+        var savedOut     = Console.Out;
+        Console.SetOut(sw);
+        try
+        {
+            var ex = Record.Exception(() => Console.WriteLine(s));
+            Assert.Null(ex);
+        }
+        finally { Console.SetOut(savedOut); }
     }
 
     [Fact]
     public void InterpolationFormat_Works_WithoutThrowing()
     {
-        // Console.WriteLine($"{styledText}") must not throw
         var s = StyledText.Create("hello", fg: Color.Green);
-        var ex = Record.Exception(() => Console.WriteLine($"{s}"));
-        Assert.Null(ex);
+        using var sw     = new StringWriter();
+        var savedOut     = Console.Out;
+        Console.SetOut(sw);
+        try
+        {
+            var ex = Record.Exception(() => Console.WriteLine($"{s}"));
+            Assert.Null(ex);
+        }
+        finally { Console.SetOut(savedOut); }
     }
 }

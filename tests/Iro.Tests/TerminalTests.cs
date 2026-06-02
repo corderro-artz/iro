@@ -2,6 +2,7 @@ using Xunit;
 
 namespace Iro.Tests;
 
+[Collection("Console")]
 public class TerminalTests
 {
     private void WithAnsiForced(Action action)
@@ -111,11 +112,10 @@ public class TerminalTests
     public void WriteLine_InterpolatedString_CapturesLiteralsAndValues()
     {
         var user = "Alice";
-        var output = CaptureWrite(() =>
+        string output = "";
+        WithAnsiForced(() =>
         {
-            Terminal.Options.EnableAnsi = true;
-            Terminal.Options.DetectAnsiAutomatically = false;
-            Terminal.WriteLine($"User {user} connected");
+            output = CaptureWrite(() => Terminal.WriteLine($"User {user} connected"));
         });
         Assert.Contains("User", output);
         Assert.Contains("Alice", output);
