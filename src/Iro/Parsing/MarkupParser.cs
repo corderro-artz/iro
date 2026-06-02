@@ -3,80 +3,102 @@ using Iro.Internal;
 
 namespace Iro.Parsing;
 
-/// <summary>Single-pass markup parser. Never throws; invalid tags render literally.</summary>
+/// <summary>Single-pass O(n) markup parser. Never throws; invalid tags render literally.</summary>
 internal static class MarkupParser
 {
     internal static StyleToken[] Parse(ReadOnlySpan<char> input)
     {
         if (input.IsEmpty) return [];
 
-        var tokens  = new List<StyleToken>();
-        var literal = new StringBuilder();
-        int i       = 0;
+        var tokens    = new List<StyleToken>();
+        var literal   = new StringBuilder();
+        var tagBuffer = new StringBuilder();
+        bool inTag    = false;
 
-        while (i < input.Length)
+        for (int i = 0; i < input.Length; i++)
         {
             char c = input[i];
 
-            if (c == '[')
+            if (!inTag)
             {
-                // Escape: [[ → [
-                if (i + 1 < input.Length && input[i + 1] == '[')
+                if (c == '[')
                 {
-                    literal.Append('[');
-                    i += 2;
-                    continue;
+                    if (i + 1 < input.Length && input[i + 1] == '[')
+                    {
+                        literal.Append('[');
+                        i++; // skip second [
+                    }
+                    else
+                    {
+                        inTag = true;
+                        tagBuffer.Clear();
+                    }
                 }
-
-                // Find closing ]
-                int close = input[i..].IndexOf(']');
-                if (close < 0)
+                else if (c == ']' && i + 1 < input.Length && input[i + 1] == ']')
+                {
+                    literal.Append(']');
+                    i++; // skip second ]
+                }
+                else
                 {
                     literal.Append(c);
-                    i++;
-                    continue;
                 }
-
-                int closeAbs = i + close;
-                var tag = input[(i + 1)..closeAbs].ToString();
-
-                if (tag == "/")
-                {
-                    FlushLiteral(tokens, literal);
-                    tokens.Add(new StyleToken(TokenType.StylePop));
-                    i = closeAbs + 1;
-                    continue;
-                }
-
-                if (TryParseColorTag(tag, out var color))
-                {
-                    FlushLiteral(tokens, literal);
-                    tokens.Add(new StyleToken(TokenType.StylePush, Style: new Style(Foreground: color)));
-                    i = closeAbs + 1;
-                    continue;
-                }
-
-                // Invalid tag — render literally
-                literal.Append('[');
-                literal.Append(tag);
-                literal.Append(']');
-                i = closeAbs + 1;
-                continue;
             }
-
-            if (c == ']' && i + 1 < input.Length && input[i + 1] == ']')
+            else // inTag
             {
-                literal.Append(']');
-                i += 2;
-                continue;
+                if (c == ']')
+                {
+                    inTag = false;
+                    var tag = tagBuffer.ToString();
+                    ProcessTag(tag, tokens, literal);
+                }
+                else if (c == '[')
+                {
+                    // Nested [ means the outer [ was not a tag opener — flush as literal
+                    literal.Append('[');
+                    literal.Append(tagBuffer);
+                    tagBuffer.Clear();
+                    // Do NOT exit inTag — the current [ starts a new tag scan
+                    // (inTag stays true, tagBuffer is clear)
+                }
+                else
+                {
+                    tagBuffer.Append(c);
+                }
             }
+        }
 
-            literal.Append(c);
-            i++;
+        // Unclosed tag at end of input — flush as literal
+        if (inTag)
+        {
+            literal.Append('[');
+            literal.Append(tagBuffer);
         }
 
         FlushLiteral(tokens, literal);
         return [.. tokens];
+    }
+
+    private static void ProcessTag(string tag, List<StyleToken> tokens, StringBuilder literal)
+    {
+        if (tag == "/")
+        {
+            FlushLiteral(tokens, literal);
+            tokens.Add(new StyleToken(TokenType.StylePop));
+            return;
+        }
+
+        if (TryParseColorTag(tag, out var color))
+        {
+            FlushLiteral(tokens, literal);
+            tokens.Add(new StyleToken(TokenType.StylePush, Style: new Style(Foreground: color)));
+            return;
+        }
+
+        // Invalid tag — render literally
+        literal.Append('[');
+        literal.Append(tag);
+        literal.Append(']');
     }
 
     private static bool TryParseColorTag(string tag, out Color color)
@@ -84,15 +106,13 @@ internal static class MarkupParser
         color = default;
         if (string.IsNullOrEmpty(tag)) return false;
 
-        // Hex color: #RRGGBB or #RGB
         if (tag[0] == '#')
         {
             try { color = Color.FromHex(tag); return true; }
             catch (FormatException) { return false; }
         }
 
-        var lower = tag.ToLowerInvariant();
-        var matched = lower switch
+        var matched = tag.ToLowerInvariant() switch
         {
             "black"   => (true, Color.Black),
             "red"     => (true, Color.Red),
