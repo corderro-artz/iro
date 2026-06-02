@@ -23,7 +23,7 @@ public class ColorTests
     [InlineData("FF8800",   255, 136,   0, 255)]
     [InlineData("#F80",     255, 136,   0, 255)]
     [InlineData("F80",      255, 136,   0, 255)]
-    [InlineData("#AAFFAA00",170, 255, 170,   0)]
+    [InlineData("#AAFFAA00", 255, 170, 0, 170)]
     public void FromHex_ParsesAllFormats(string hex, byte r, byte g, byte b, byte a)
     {
         var c = Color.FromHex(hex);

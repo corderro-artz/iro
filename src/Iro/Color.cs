@@ -32,7 +32,7 @@ public readonly record struct Color(byte R, byte G, byte B, byte A = 255)
 
     /// <summary>
     /// Creates a color from a hex string.
-    /// Supported formats: #RGB, RGB, #RRGGBB, RRGGBB, #RRGGBBAA, RRGGBBAA.
+    /// Supported formats: #RGB, RGB, #RRGGBB, RRGGBB, #AARRGGBB, AARRGGBB.
     /// </summary>
     /// <exception cref="FormatException">Thrown when <paramref name="hex"/> is not a recognised format.</exception>
     public static Color FromHex(string hex)
@@ -47,7 +47,7 @@ public readonly record struct Color(byte R, byte G, byte B, byte A = 255)
         {
             3  => new Color(ExpandNibble(span[0]), ExpandNibble(span[1]), ExpandNibble(span[2])),
             6  => new Color(ParseByte(span, 0), ParseByte(span, 2), ParseByte(span, 4)),
-            8  => new Color(ParseByte(span, 0), ParseByte(span, 2), ParseByte(span, 4), ParseByte(span, 6)),
+            8  => new Color(ParseByte(span, 2), ParseByte(span, 4), ParseByte(span, 6), ParseByte(span, 0)),
             _  => throw new FormatException($"Unrecognised hex color format: '{hex}'.")
         };
     }
