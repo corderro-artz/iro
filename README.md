@@ -92,17 +92,21 @@ Terminal.WriteLine($"Status: {"active":#00CC66}");
 
 All input — markup strings, interpolated strings, or `StyledText` values — is tokenized into a `StyleToken[]` array before any output is written. The `Renderer` coordinator then selects the appropriate output path based on `TerminalOptions` and the detected environment.
 
-```text
-Input
- ↓
-MarkupParser  /  TerminalInterpolatedStringHandler
- ↓
-StyleToken[]
- ↓
-Renderer
- ↓
-AnsiRenderer  ──►  ANSI escape sequences  ──►  Console / TextWriter
-ConsoleRenderer ►  ConsoleColor fallback   ──►  Console / TextWriter
+```mermaid
+flowchart TD
+    IN["Input"]
+    P["MarkupParser<br/>TerminalInterpolatedStringHandler"]
+    T["StyleToken[]"]
+    R["Renderer"]
+    A["AnsiRenderer"]
+    C["ConsoleRenderer"]
+    AE["ANSI escape sequences"]
+    CF["ConsoleColor fallback"]
+    O(["Console / TextWriter"])
+
+    IN --> P --> T --> R
+    R --> A --> AE --> O
+    R --> C --> CF --> O
 ```
 
 ### Design Principles
