@@ -92,22 +92,13 @@ Terminal.WriteLine($"Status: {"active":#00CC66}");
 
 All input — markup strings, interpolated strings, or `StyledText` values — is tokenized into a `StyleToken[]` array before any output is written. The `Renderer` coordinator then selects the appropriate output path based on `TerminalOptions` and the detected environment.
 
-```mermaid
-flowchart TD
-    IN["Input"]
-    P["MarkupParser<br/>TerminalInterpolatedStringHandler"]
-    T["StyleToken[]"]
-    R["Renderer"]
-    A["AnsiRenderer"]
-    C["ConsoleRenderer"]
-    AE["ANSI escape sequences"]
-    CF["ConsoleColor fallback"]
-    O(["Console / TextWriter"])
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/architecture-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="docs/diagrams/architecture-light.svg">
+  <img alt="Iro architecture: input is parsed into StyleToken[] by the markup parser or the interpolated string handler, then the renderer emits either ANSI escape sequences or a ConsoleColor fallback to the console or a TextWriter." src="docs/diagrams/architecture-light.svg">
+</picture>
 
-    IN --> P --> T --> R
-    R --> A --> AE --> O
-    R --> C --> CF --> O
-```
+<sub>Source: <a href="docs/diagrams/architecture.mmd"><code>docs/diagrams/architecture.mmd</code></a></sub>
 
 ### Design Principles
 
