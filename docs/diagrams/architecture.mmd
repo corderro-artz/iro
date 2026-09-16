@@ -1,0 +1,25 @@
+flowchart LR
+    IN(["Input"])
+
+    subgraph PARSE ["parse"]
+        direction TB
+        MP["MarkupParser"]
+        IH["TerminalInterpolatedStringHandler"]
+    end
+
+    R["Renderer"]
+
+    subgraph BACKENDS ["renderers"]
+        direction TB
+        A["AnsiRenderer<br/>ANSI escape sequences"]
+        C["ConsoleRenderer<br/>ConsoleColor fallback"]
+    end
+
+    O(["Console / TextWriter"])
+
+    IN --> MP
+    IN --> IH
+    MP -->|"StyleToken[]"| R
+    IH -->|"StyleToken[]"| R
+    R --> A --> O
+    R --> C --> O
